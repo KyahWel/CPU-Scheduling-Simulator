@@ -66,11 +66,17 @@ def printtable(data):
 					'End Time','Response Time','Turnaround Time','Waiting Time'])
 	print(table)
 
+def CpuUtil(idletime,totaltime):
+	CPUUtil = ((float(totaltime-idletime)/totaltime))*100
+
+	print("CPU Utilization = ",round(CPUUtil,2), "%")
+
 def FCFS():
 	global time
 	ticks = [0]
 	idletime = 0
 	zeroes = 0
+	ti = 0
 	FCFSProcessedqueue = []
 	Ganttqueue = []
 	for x in range(len(processlist)):
@@ -82,21 +88,24 @@ def FCFS():
 	for i in range(len(FCFSProcessedqueue)):
 		if (time<FCFSProcessedqueue[i][2]):
 			Ganttqueue.append(['Idle',FCFSProcessedqueue[i][2]-time])		# For idle
+			ti += (FCFSProcessedqueue[i][2]-time)
 			time += (FCFSProcessedqueue[i][2]-time)
 			ticks.append(time)
+		print("Value of ti = ", ti)
 		Ganttqueue.append([FCFSProcessedqueue[i][0],FCFSProcessedqueue[i][1]])
 		FCFSProcessedqueue[i][4] = time    # Start time
 		time += FCFSProcessedqueue[i][1]   
 		FCFSProcessedqueue[i][5] = time    # End time 
 		ticks.append(time)
 	computation(FCFSProcessedqueue)
-	plt.title("Gantt Chart of First come, First Serve Scheduling")
+	plt.title("Gantt Chart of First come, First Served Scheduling")
 	processlist.sort(key=lambda x:x[0])				# Sort by Process Name
 	FCFSProcessedqueue.sort(key=lambda x:x[0])		# Sort by Process Name
 	print("-"+"-"*120+"\n")
-	print("First Come, First Serve simulation result:\n")	
+	print("First Come, First Served simulation result:\n")	
 	printtable(FCFSProcessedqueue)
 	average()
+	CpuUtil(ti,ticks[-1])
 	showganttchaart(Ganttqueue,ticks)
 
 def SJF():
@@ -105,6 +114,7 @@ def SJF():
 	ticks = [0]
 	zeroes = 0
 	counter = 0
+	ti = 0
 	SJFProcessedqueue = []
 	Ganttqueue = []
 	readyqueue = []
@@ -118,6 +128,7 @@ def SJF():
 	while(counter != len(processlist)):
 		if(time<processlist[counter][2]):
 			Ganttqueue.append(['Idle',processlist[counter][2]-time])		# For idle
+			ti += (processlist[counter][2]-time)
 			time += (processlist[counter][2]-time)
 			ticks.append(time)
 			counter -=1
@@ -146,6 +157,7 @@ def SJF():
 	print("Shortest Job First simulation result:\n")
 	printtable(SJFProcessedqueue)	
 	average()
+	CpuUtil(ti,ticks[-1])
 	showganttchaart(Ganttqueue,ticks)
 
 def NonPrempPrio():
@@ -153,6 +165,7 @@ def NonPrempPrio():
 	global time
 	zeroes = 0 
 	counter = 0
+	ti = 0
 	NonPrempPrioqueue = []
 	readyqueue = []
 	Ganttqueue = []
@@ -166,6 +179,7 @@ def NonPrempPrio():
 	while(counter != len(processlist)):
 		if(time<processlist[counter][2]):
 			Ganttqueue.append(['Idle',processlist[counter][2]-time])		# For idle
+			ti += (processlist[counter][2]-time)
 			time += (processlist[counter][2]-time)
 			ticks.append(time)
 			counter -=1
@@ -193,6 +207,7 @@ def NonPrempPrio():
 	print("Non Preemptive Priority simulation result:\n")
 	printtable(NonPrempPrioqueue)
 	average()
+	CpuUtil(ti,ticks[-1])
 	showganttchaart(Ganttqueue,ticks)
 
 def RoundRobin():
@@ -200,6 +215,7 @@ def RoundRobin():
 	global time, tq, process
 	processed = [] 
 	done = 0
+	ti = 0
 	RRqueue  = copy.deepcopy(processlist)
 	Process_preempted = []
 	for i in range(len(RRqueue)):
@@ -209,8 +225,9 @@ def RoundRobin():
 	while(True):
 		RRqueue.sort(key=lambda x:x[2])
 		if(RRqueue[0][2]>time):
-			Ganttqueue.append(['Idle',RRqueue[0][2]-time])			
-			time = RRqueue[0][2]
+			Ganttqueue.append(['Idle',RRqueue[0][2]-time])	
+			ti += (RRqueue[0][2]-time)	
+			time += (RRqueue[0][2]-time)
 			ticks.append(time)
 		for z in range(len(RRqueue)):
 			if(RRqueue[0][0]==Process_preempted[z][0] and Process_preempted[z][1]==0):		# Check if preempted
@@ -249,6 +266,7 @@ def RoundRobin():
 	computation(RRqueue)
 	printtable(RRqueue)
 	average()
+	CpuUtil(ti,ticks[-1])
 	showganttchaart(Ganttqueue,ticks)	
 
 def SRTF():
@@ -256,6 +274,7 @@ def SRTF():
 	global time, process
 	processed = [] 
 	done = 0
+	ti = 0
 	SRTFqueue  = copy.deepcopy(processlist)
 	Process_preempted = []
 	readyqueue = []
@@ -269,8 +288,9 @@ def SRTF():
 	while(True):
 		SRTFqueue.sort(key=lambda x:x[2])								# sort by arrival time
 		if(SRTFqueue[0][2]>time):										# for idle
-			Ganttqueue.append(['Idle',SRTFqueue[0][2]-time])			
-			time += SRTFqueue[0][2]-time
+			Ganttqueue.append(['Idle',SRTFqueue[0][2]-time])
+			ti += (SRTFqueue[0][2]-time)			
+			time += (SRTFqueue[0][2]-time)
 			ticks.append(time)
 		for i in range(len(SRTFqueue)):
 			if(SRTFqueue[i][2]<=time):
@@ -322,11 +342,12 @@ def SRTF():
 		SRTFqueue[i][1] = processlist[i][1]
 		SRTFqueue[i][2] = processlist[i][2]
 	print("-"+"-"*120+"\n")
-	print("Shortest Remaining Time result:\n")
-	plt.title("Gantt Chart of Shortest Remaining Time")
+	print("Shortest Remaining Time First result:\n")
+	plt.title("Gantt Chart of Shortest Remaining Time First")
 	computation(SRTFqueue)
 	printtable(SRTFqueue)
 	average()
+	CpuUtil(ti,ticks[-1])
 	showganttchaart(Ganttqueue,ticks)	
 
 def PreempPrio():
@@ -334,6 +355,7 @@ def PreempPrio():
 	global time, process
 	processed = [] 
 	done = 0
+	ti = 0
 	Preempprioqueue  = copy.deepcopy(processlist)
 	Process_preempted = []
 	readyqueue = []
@@ -347,8 +369,9 @@ def PreempPrio():
 	while(True):
 		Preempprioqueue.sort(key=lambda x:x[2])								# sort by arrival time
 		if(Preempprioqueue[0][2]>time):										# for idle
-			Ganttqueue.append(['Idle',Preempprioqueue[0][2]-time])			
-			time += Preempprioqueue[0][2]-time
+			Ganttqueue.append(['Idle',Preempprioqueue[0][2]-time])
+			ti += (Preempprioqueue[0][2]-time)			
+			time += (Preempprioqueue[0][2]-time)
 			ticks.append(time)
 		for i in range(len(Preempprioqueue)):
 			if(Preempprioqueue[i][2]<=time):
@@ -406,6 +429,7 @@ def PreempPrio():
 	computation(Preempprioqueue)
 	printtable(Preempprioqueue)
 	average()
+	CpuUtil(ti,ticks[-1])
 	showganttchaart(Ganttqueue,ticks)	
 
 def prompt():
